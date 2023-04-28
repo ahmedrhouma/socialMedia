@@ -2,7 +2,34 @@
 require 'bdd.php';
 $error = null;
 if (isset($_POST['register'])) {
-
+    if ($_POST['password'] == $_POST['confirm_password']) {
+        $stmt = $conn->prepare("SELECT * FROM users where email=:em");
+        $stmt->bindParam(':em', $_POST['email']);
+        $stmt->execute();
+        $userExist = $stmt->fetchObject();
+        if (!$userExist) {
+            $name = $_POST['user_name'];
+            $email = $_POST['email'];
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $confirm_password = $_POST['confirm_password'];
+            $created_at = date("Y-m-d H:i:s");
+            $stmt = $conn->prepare("INSERT INTO users(name,password,email,created_at) values (:nm,:pwd,:em,:cr)");
+            $stmt->bindParam(':nm', $name);
+            $stmt->bindParam(':pwd', $password);
+            $stmt->bindParam(':em', $email);
+            $stmt->bindParam(':cr', $created_at);
+            $stmt->execute();
+            if ($stmt->rowCount() != 0){
+                $success = "Your account has been created successfully";
+            }else{
+                $error = "Failed to create account !!";
+            }
+        }else{
+            $error = "Email arleady in use!!!";
+        }
+    }else {
+        $error = "Confirm password does not match!!!";
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -64,10 +91,13 @@ if (isset($_POST['register'])) {
             <div class="card shadow-none border-0 ms-auto me-auto login-card">
                 <div class="card-body rounded-0 text-left">
                     <h2 class="fw-700 display1-size display2-md-size mb-4">Crée votre Compte</h2>
-                    <form method="POST">
+                    <form method="POST" action="">
                         <?php
-                        if ($error != null) {
-                            echo '<badge class="badge badge-danger w-100">' . $error . '</badge>';
+                        if ($error != null){
+                            echo "<span class='badge badge-danger'>$error</span>";
+                        }
+                        if (isset($success)){
+                            echo "<span class='badge badge-success'>$success</span>";
                         }
                         ?>
                         <div class="form-group icon-input mb-3">
@@ -79,12 +109,6 @@ if (isset($_POST['register'])) {
                             <i class="font-sm ti-email text-grey-500 pe-0"></i>
                             <input type="text" class="style2-input ps-5 form-control text-grey-900 font-xsss fw-600"
                                    placeholder="Addresse Email" name="email" required>
-                        </div>
-                        <div class="form-group mb-3">
-                            <select class="style2-input ps-5 form-control text-grey-900 font-xsss fw-600" name="type" required>
-                                <option value="student">étudiant</option>
-                                <option value="teacher">enseignant</option>
-                            </select>
                         </div>
                         <div class="form-group icon-input mb-3">
                             <input type="Password" class="style2-input ps-5 form-control text-grey-900 font-xss ls-3"

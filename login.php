@@ -2,7 +2,23 @@
 require 'bdd.php';
 $error = null;
 if (isset($_POST['login'])){
-
+    $stmt = $conn->prepare("SELECT * FROM users where email=:em");
+    $stmt->bindParam(':em', $_POST['email']);
+    $stmt->execute();
+    $userExist = $stmt->fetchObject();
+    if ($userExist){
+        if (password_verify($_POST['password'],$userExist->password)){
+            session_start();
+            $_SESSION['id'] = $userExist->id;
+            $_SESSION['name'] = $userExist->name;
+            $_SESSION['avatar'] = $userExist->avatar != null?$userExist->avatar:"images/profile-2.png";
+            header('Location:home.php');
+        }else{
+            var_dump("password wrong");
+        }
+    }else{
+        var_dump("account does not exist");
+    }
 }
 ?>
 <!DOCTYPE html>

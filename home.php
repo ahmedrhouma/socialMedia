@@ -5,6 +5,20 @@ if (isset($_POST['create_post'])) {
     /**
      * insert script of creating a post
      */
+    $title = $_POST['title'];
+    $description = $_POST['description'];
+    $created_at = date('Y-m-d H:i:s');
+    $stmt = $conn->prepare("INSERT INTO posts(title,description,created_at,user_id) values (:ti,:desc,:cr,:uid)");
+    $stmt->bindParam(':ti', $title);
+    $stmt->bindParam(':desc', $description);
+    $stmt->bindParam(':cr', $created_at);
+    $stmt->bindParam(':uid', $_SESSION['id']);
+    $stmt->execute();
+    if ($stmt->rowCount() != 0){
+        $success = "Post created successfully";
+    }else{
+        $error = "Failed to create post !!";
+    }
 }
 // get All posts from my database
 
